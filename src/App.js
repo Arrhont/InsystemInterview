@@ -81,25 +81,6 @@ class App extends React.Component {
     this.setState({ usdToRubExchangeRate: exchangeRate });
   };
 
-  getGroupIdByName = productName => {
-    const groupId = this.state.productData.find(elem =>
-      elem.content.find(elem => elem.name === productName)
-    ).id;
-    return groupId;
-  };
-
-  getPriceByName = productName => {
-    let price = 'Cannot find price for product';
-    this.state.productData.find(elem =>
-      elem.content.find(elem => {
-        price = elem.priceUsd;
-        return elem.name === productName;
-      })
-    );
-
-    return price;
-  };
-
   addToCart = (goodId, quantity = 1) => {
     const { goodsMap, cart } = this.state;
     const newCart = new Map(cart);
@@ -110,61 +91,29 @@ class App extends React.Component {
     }
 
     const newGoodsMap = new Map(goodsMap);
-    const newGood = {...newGoodsMap.get(goodId)};
+    const newGood = { ...newGoodsMap.get(goodId) };
     newGood.quantity -= quantity;
     newGoodsMap.set(goodId, newGood);
 
-    this.setState({goodsMap: newGoodsMap, cart: newCart});
-    // const groupId = this.getGroupIdByName(productName);
-    // const priceUsd = this.getPriceByName(productName);
-    // const currentGroup = this.state.productData.find(
-    //   elem => elem.id === groupId
-    // );
-    // const groupIndex = this.state.productData.findIndex(
-    //   elem => elem.id === groupId
-    // );
-    // const productIndex = currentGroup.content.findIndex(
-    //   elem => elem.name === productName
-    // );
-    // currentGroup.content[productIndex].quantity -= quantity;
-    // const newProductData = this.state.productData.slice();
-    // newProductData.splice(groupIndex, 1, currentGroup);
-    // const cart = this.state.cart.slice();
-    // const currentProductInCart = cart.find(
-    //   elem => elem.productName === productName
-    // );
-    // const isInCart = !!currentProductInCart;
-    // if (isInCart) {
-    //   const index = cart.findIndex(elem => elem.productName === productName);
-    //   cart[index].quantity += 1;
-    // } else {
-    //   cart.push({ productName, priceUsd, quantity, groupId });
-    // }
-    // console.log(cart);
-    // this.setState({ productData: newProductData, cart: cart });
+    this.setState({ goodsMap: newGoodsMap, cart: newCart });
   };
 
-  removeFromCart = (productName, quantity) => {
-    const groupId = this.getGroupIdByName(productName);
-    const newCart = this.state.cart.filter(
-      elem => elem.productName !== productName
-    );
+  removeFromCart = (goodId, quantity) => {
+    const { goodsMap, cart } = this.state;
+    const newCart = new Map(cart);
 
-    const currentGroup = this.state.productData.find(
-      elem => elem.id === groupId
-    );
-    const groupIndex = this.state.productData.findIndex(
-      elem => elem.id === groupId
-    );
+    newCart.set(goodId, cart.get(goodId) - quantity);
+    if (newCart.get(goodId) === 0) {
+      newCart.delete(goodId);
+    }
 
-    const productIndex = currentGroup.content.findIndex(
-      elem => elem.name === productName
-    );
-    currentGroup.content[productIndex].quantity += quantity;
-    const newProductData = this.state.productData.slice();
-    newProductData.splice(groupIndex, 1, currentGroup);
+    const newGoodsMap = new Map(goodsMap);
+    const newGood = { ...newGoodsMap.get(goodId) };
+    newGood.quantity += quantity;
 
-    this.setState({ productData: newProductData, cart: newCart });
+    newGoodsMap.set(goodId, newGood);
+
+    this.setState({ goodsMap: newGoodsMap, cart: newCart });
   };
 
   getGoodsFromGroup = goodGroup => {
@@ -173,6 +122,17 @@ class App extends React.Component {
       .filter(Boolean);
 
     return goods;
+  };
+
+  cartArrayFromMap = () => {
+    const { goodsMap, cart } = this.state;
+
+    return Array.from(cart).map(([goodId, quantity]) => ({
+      goodName: goodsMap.get(goodId).name,
+      priceUsd: goodsMap.get(goodId).priceUsd,
+      goodId,
+      quantity
+    }));
   };
 
   render() {
@@ -192,24 +152,33 @@ class App extends React.Component {
         </header>
 
         <div className="Grocery-list">
-          {groupArray.map(([groupId, goodGroup]) => (
+          {groupArray.map(([groupId, goodGroup]) => {
+            const goods = this.getGoodsFromGroup(goodGroup);
+            return (
+              goods.length > 0 && (
 
-            <ProductGroup key={groupId} groupName={goodGroup.name} id={groupId}>
-              {this.getGoodsFromGroup(goodGroup).map(good => (
-                  <GoodRecord
-                    key={good.id}
-                    good={good}
-                    addToCart={this.addToCart}
-                  />
-                ))}
-            </ProductGroup>
-
-          ))}
+                <ProductGroup
+                  key={groupId}
+                  groupName={goodGroup.name}
+                  id={groupId}
+                >
+                  {goods.map(good => (
+                    <GoodRecord
+                      key={good.id}
+                      good={good}
+                      addToCart={this.addToCart}
+                    />
+                  ))}
+                </ProductGroup>
+                
+              )
+            );
+          })}
         </div>
 
         <Cart
           className="Cart-list"
-          cart={[]}
+          cart={this.cartArrayFromMap()}
           exchangeRate={this.state.usdToRubExchangeRate}
           removeFromCart={this.removeFromCart}
         />

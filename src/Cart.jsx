@@ -6,12 +6,11 @@ function Cart(props) {
     <div>
       {props.cart.map((cartRecord, index) => (
         <CartRecord
-          key={cartRecord.productName}
-          name={cartRecord.productName}
+          key={cartRecord.goodName}
+          name={cartRecord.goodName}
           price={cartRecord.priceUsd}
+          goodId={cartRecord.goodId}
           cartQuantity={cartRecord.quantity}
-          groupId={cartRecord.groupId}
-
           exchangeRate={props.exchangeRate}
           removeFromCart={props.removeFromCart}
         />

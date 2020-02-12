@@ -13,7 +13,7 @@ class CartRecord extends React.Component {
         <button
           onClick={(event) => {
             this.props.removeFromCart(
-              this.props.name,
+              this.props.goodId,
               this.props.cartQuantity);
           }}
         >
