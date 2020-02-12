@@ -6,8 +6,10 @@ function ProductGroup(props) {
         <div>
             {props.groupName} {props.id}
             <GroupContent
+                className="Goods-group"
                 content={props.content}
                 exchangeRate={props.exchangeRate}
+                addToCart={props.addToCart}
             />
         </div>
     )

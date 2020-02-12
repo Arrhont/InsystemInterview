@@ -2,6 +2,7 @@ import React from 'react';
 import logo from './logo.svg';
 import './App.css';
 import ProductGroup from './ProductGroup';
+import Cart from './Cart';
 
 function groupDataGoods(data, names) {
   const groupedGoods = [];
@@ -21,47 +22,115 @@ function groupDataGoods(data, names) {
     groupedGoods[groupIndex].content.push({ name, quantity, priceUsd });
   });
 
-  return groupedGoods;
+  return groupedGoods.filter((elem) => elem.content.length);
 }
 
 class App extends React.Component {
 
   constructor(props) {
     super(props);
-    this.state = { productsData: [], usdToRubExchangeRate: 65 };
+    this.state = {
+      productData: [],
+      cart: [],
+      usdToRubExchangeRate: 65,
+    };
   }
 
   componentDidMount() {
-    let datapromise = fetch('./data.json').then(response => {
+    const datapromise = fetch('./data.json').then(response => {
       return response.json();
     });
 
-    let namesPromise = fetch('./names.json').then(response => {
+    const namesPromise = fetch('./names.json').then(response => {
       return response.json();
     });
 
     Promise.all([datapromise, namesPromise]).then(([data, names]) => {
-      this.setState({ productsData: groupDataGoods(data, names) });
+      this.setState({ productData: groupDataGoods(data, names) });
     });
   }
 
+  getGroupIdByName = (productName) => {
+    const groupId = this.state.productData.find((elem) => elem.content.find((elem) => elem.name === productName)).id;
+    return groupId;
+  }
+
+  getPriceByName = (productName) => {
+    let price = 'Cannot find price for product';
+    this.state.productData.find((elem) => elem.content.find((elem) => {
+      price = elem.priceUsd;
+      return (elem.name === productName)}));
+
+    return price;
+  }
+
+  addToCart = (productName, quantity = 1) => {
+
+    const groupId = this.getGroupIdByName(productName);
+    const priceUsd = this.getPriceByName(productName);
+    const currentGroup = this.state.productData.find((elem) => elem.id === groupId);
+    const groupIndex = this.state.productData.findIndex((elem) => elem.id === groupId);
+
+    const productIndex = currentGroup.content.findIndex((elem) => elem.name === productName);
+    currentGroup.content[productIndex].quantity -= 1;
+    const newProductData = this.state.productData.slice();
+    newProductData.splice(groupIndex, 1, currentGroup);
+    
+    const cart = this.state.cart.slice();
+    const currentProductInCart = cart.find((elem) => elem.productName === productName);
+    const isInCart = !!currentProductInCart;
+    
+    if (isInCart) {
+      const index = cart.findIndex((elem) => elem.productName === productName);
+      cart[index].quantity += 1;
+    } else {
+      cart.push({ productName, priceUsd, quantity, groupId })
+    }
+    console.log(cart)
+    this.setState({ productData: newProductData, cart: cart });
+  }
+
+  removeFromCart = (productName, quantity) => {
+    const groupId = this.getGroupIdByName(productName);
+    const newCart = this.state.cart.slice();
+    const removingItemIndex = newCart.indexOf((elem) => elem.productName === productName);
+    newCart.splice(removingItemIndex, 1);
+
+    const newProductData = this.state.productData.slice();
+    const groupIndex = newProductData.findIndex((elem) => elem.id === groupId);
+    const removingProduct = newProductData[groupIndex].content.find((elem) => elem.name === productName);
+    const removingProductIndex = newProductData[groupIndex].content.indexOf((elem) => elem.productName === productName);
+    removingProduct.quantity += quantity;
+    newProductData[groupIndex].content.splice(removingProductIndex, 1, removingProduct);
+   
+    this.setState({ productData: newProductData, cart: newCart });
+  }
+
   render() {
-    console.log(this.state);
+
     return (
       <div className="App">
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
         </header>
-        
-        {this.state.productsData.map(goodGroup => (
-          <ProductGroup 
-            key={ goodGroup.id } 
-            groupName={ goodGroup.groupName }
-            id={ goodGroup.id } 
-            content={goodGroup.content} 
-            exchangeRate={this.state.usdToRubExchangeRate} 
-          />
-        ))}
+        <div className="Grocery-list">
+          {this.state.productData.map(goodGroup => (
+            <ProductGroup
+              key={goodGroup.id}
+              groupName={goodGroup.groupName}
+              id={goodGroup.id}
+              content={goodGroup.content}
+              exchangeRate={this.state.usdToRubExchangeRate}
+              addToCart={this.addToCart}
+            />
+          ))}
+        </div>
+        <Cart
+          className="Cart-list"
+          cart={this.state.cart}
+          exchangeRate={this.state.usdToRubExchangeRate}
+          removeFromCart={this.removeFromCart}
+        />
       </div>
     );
   }
