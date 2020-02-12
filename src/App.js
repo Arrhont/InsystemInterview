@@ -50,6 +50,10 @@ class App extends React.Component {
     });
   }
 
+  exchangeRateChange = (exchangeRate) => {
+    this.setState({ usdToRubExchangeRate: exchangeRate });
+  }
+
   getGroupIdByName = (productName) => {
     const groupId = this.state.productData.find((elem) => elem.content.find((elem) => elem.name === productName)).id;
     return groupId;
@@ -59,7 +63,8 @@ class App extends React.Component {
     let price = 'Cannot find price for product';
     this.state.productData.find((elem) => elem.content.find((elem) => {
       price = elem.priceUsd;
-      return (elem.name === productName)}));
+      return (elem.name === productName)
+    }));
 
     return price;
   }
@@ -75,11 +80,11 @@ class App extends React.Component {
     currentGroup.content[productIndex].quantity -= quantity;
     const newProductData = this.state.productData.slice();
     newProductData.splice(groupIndex, 1, currentGroup);
-    
+
     const cart = this.state.cart.slice();
     const currentProductInCart = cart.find((elem) => elem.productName === productName);
     const isInCart = !!currentProductInCart;
-    
+
     if (isInCart) {
       const index = cart.findIndex((elem) => elem.productName === productName);
       cart[index].quantity += 1;
@@ -92,9 +97,7 @@ class App extends React.Component {
 
   removeFromCart = (productName, quantity) => {
     const groupId = this.getGroupIdByName(productName);
-    const newCart = this.state.cart.slice();
-    const removingItemIndex = newCart.indexOf((elem) => elem.productName === productName);
-    newCart.splice(removingItemIndex, 1);
+    const newCart = this.state.cart.filter((elem) => elem.productName !== productName);
 
     const currentGroup = this.state.productData.find((elem) => elem.id === groupId);
     const groupIndex = this.state.productData.findIndex((elem) => elem.id === groupId);
@@ -103,7 +106,7 @@ class App extends React.Component {
     currentGroup.content[productIndex].quantity += quantity;
     const newProductData = this.state.productData.slice();
     newProductData.splice(groupIndex, 1, currentGroup);
-   
+
     this.setState({ productData: newProductData, cart: newCart });
   }
 
@@ -113,6 +116,12 @@ class App extends React.Component {
       <div className="App">
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
+          Курс доллара:
+          <input
+            type="number"
+            value={this.state.usdToRubExchangeRate}
+            onChange={(event) => this.exchangeRateChange(event.target.value)}>
+          </input>
         </header>
         <div className="Grocery-list">
           {this.state.productData.map(goodGroup => (

@@ -6,7 +6,7 @@ function Cart(props) {
     <div>
       {props.cart.map((cartRecord, index) => (
         <CartRecord
-          key={index}
+          key={cartRecord.productName}
           name={cartRecord.productName}
           price={cartRecord.priceUsd}
           cartQuantity={cartRecord.quantity}
