@@ -6,25 +6,6 @@ import Cart from './Cart';
 import GoodRecord from './GoodRecord';
 
 function groupDataGoods(data, names) {
-  // const groupedGoods = [];
-  // const groupIdToIndexMap = {};
-
-  // Object.entries(names).forEach(([groupId, group], index) => {
-  //   groupedGoods.push({ groupName: group.G, id: groupId, content: [] });
-  //   groupIdToIndexMap[groupId] = index;
-  // });
-
-  // const { Value: { Goods: goods } } = data;
-
-  // goods.forEach(good => {
-  //   const { P: quantity, C: priceUsd, T: goodId, G: groupId } = good;
-  //   const groupIndex = groupIdToIndexMap[groupId];
-  //   const name = names[groupId].B[goodId].N;
-  //   groupedGoods[groupIndex].content.push({ name, quantity, priceUsd });
-  // });
-
-  // return groupedGoods.filter((elem) => elem.content.length);
-
   const goodsWithNames = data.Value.Goods.map(good => [
     good.T.toString(),
     {
@@ -51,6 +32,11 @@ function groupDataGoods(data, names) {
   return { groupMap, goodsMap };
 }
 
+const PRICE_STATE = {
+  INCREASED: 'increased',
+  DECREASED: 'decreased'
+};
+
 class App extends React.Component {
   constructor(props) {
     super(props);
@@ -58,11 +44,26 @@ class App extends React.Component {
       goodsMap: new Map(),
       groupMap: new Map(),
       cart: new Map(),
+      priceState: new Map(),
       usdToRubExchangeRate: 65
     };
   }
 
-  componentDidMount() {
+  getPriceState = (goodsMap, prevGoodsMap) => {
+    const priceState = new Map();
+    for (let [goodId, good] of prevGoodsMap) {
+      if (good.priceUsd > goodsMap.get(goodId).priceUsd) {
+        priceState.set(goodId, PRICE_STATE.DECREASED);
+      }
+      if (good.priceUsd < goodsMap.get(goodId).priceUsd) {
+        priceState.set(goodId, PRICE_STATE.INCREASED);
+      }
+    }
+
+    return priceState;
+  };
+
+  setStateFromJson = (isFirstLaunch = false) => {
     const datapromise = fetch('./data.json').then(response => {
       return response.json();
     });
@@ -73,8 +74,21 @@ class App extends React.Component {
 
     Promise.all([datapromise, namesPromise]).then(([data, names]) => {
       const { goodsMap, groupMap } = groupDataGoods(data, names);
+
+      
+      if (!isFirstLaunch) {
+        // goodsMap.get('1').priceUsd = 1000;
+        const priceState = this.getPriceState(goodsMap, this.state.goodsMap);
+        this.setState({ priceState });
+      }
+
       this.setState({ goodsMap, groupMap });
     });
+  };
+
+  componentDidMount() {
+    this.setStateFromJson(true);
+    setInterval(this.setStateFromJson, 15 * 1000);
   }
 
   exchangeRateChange = exchangeRate => {
@@ -82,7 +96,7 @@ class App extends React.Component {
   };
 
   addToCart = (goodId, quantity = 1) => {
-    const { goodsMap, cart } = this.state;
+    const { cart } = this.state;
     const newCart = new Map(cart);
     if (cart.has(goodId)) {
       newCart.set(goodId, cart.get(goodId) + quantity);
@@ -90,16 +104,11 @@ class App extends React.Component {
       newCart.set(goodId, quantity);
     }
 
-    const newGoodsMap = new Map(goodsMap);
-    const newGood = { ...newGoodsMap.get(goodId) };
-    newGood.quantity -= quantity;
-    newGoodsMap.set(goodId, newGood);
-
-    this.setState({ goodsMap: newGoodsMap, cart: newCart });
+    this.setState({ cart: newCart });
   };
 
   removeFromCart = (goodId, quantity) => {
-    const { goodsMap, cart } = this.state;
+    const { cart } = this.state;
     const newCart = new Map(cart);
 
     newCart.set(goodId, cart.get(goodId) - quantity);
@@ -107,13 +116,7 @@ class App extends React.Component {
       newCart.delete(goodId);
     }
 
-    const newGoodsMap = new Map(goodsMap);
-    const newGood = { ...newGoodsMap.get(goodId) };
-    newGood.quantity += quantity;
-
-    newGoodsMap.set(goodId, newGood);
-
-    this.setState({ goodsMap: newGoodsMap, cart: newCart });
+    this.setState({ cart: newCart });
   };
 
   getGoodsFromGroup = goodGroup => {
@@ -133,6 +136,15 @@ class App extends React.Component {
       goodId,
       quantity
     }));
+  };
+
+  getGoodsPreview = good => {
+    const { cart } = this.state;
+    const goodQuantityInCart = cart.has(good.id) ? cart.get(good.id) : 0;
+    return {
+      ...good,
+      quantity: good.quantity - goodQuantityInCart
+    };
   };
 
   render() {
@@ -156,7 +168,6 @@ class App extends React.Component {
             const goods = this.getGoodsFromGroup(goodGroup);
             return (
               goods.length > 0 && (
-
                 <ProductGroup
                   key={groupId}
                   groupName={goodGroup.name}
@@ -165,12 +176,12 @@ class App extends React.Component {
                   {goods.map(good => (
                     <GoodRecord
                       key={good.id}
-                      good={good}
+                      good={this.getGoodsPreview(good)}
+                      priceState={this.state.priceState.get(good.id)}
                       addToCart={this.addToCart}
                     />
                   ))}
                 </ProductGroup>
-                
               )
             );
           })}
