@@ -72,7 +72,7 @@ class App extends React.Component {
     const groupIndex = this.state.productData.findIndex((elem) => elem.id === groupId);
 
     const productIndex = currentGroup.content.findIndex((elem) => elem.name === productName);
-    currentGroup.content[productIndex].quantity -= 1;
+    currentGroup.content[productIndex].quantity -= quantity;
     const newProductData = this.state.productData.slice();
     newProductData.splice(groupIndex, 1, currentGroup);
     
@@ -96,12 +96,13 @@ class App extends React.Component {
     const removingItemIndex = newCart.indexOf((elem) => elem.productName === productName);
     newCart.splice(removingItemIndex, 1);
 
+    const currentGroup = this.state.productData.find((elem) => elem.id === groupId);
+    const groupIndex = this.state.productData.findIndex((elem) => elem.id === groupId);
+
+    const productIndex = currentGroup.content.findIndex((elem) => elem.name === productName);
+    currentGroup.content[productIndex].quantity += quantity;
     const newProductData = this.state.productData.slice();
-    const groupIndex = newProductData.findIndex((elem) => elem.id === groupId);
-    const removingProduct = newProductData[groupIndex].content.find((elem) => elem.name === productName);
-    const removingProductIndex = newProductData[groupIndex].content.indexOf((elem) => elem.productName === productName);
-    removingProduct.quantity += quantity;
-    newProductData[groupIndex].content.splice(removingProductIndex, 1, removingProduct);
+    newProductData.splice(groupIndex, 1, currentGroup);
    
     this.setState({ productData: newProductData, cart: newCart });
   }

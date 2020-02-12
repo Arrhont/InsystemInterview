@@ -16,7 +16,13 @@ function Cart(props) {
           removeFromCart={props.removeFromCart}
         />
       ))
-      }</div>
+      }
+      {props.cart.length > 0 &&
+        <div>
+          Итого: {props.cart.reduce((acc, item) => acc + item.priceUsd * item.quantity * props.exchangeRate, 0)} руб.
+      </div>}
+    </div>
+
   )
 }
 
