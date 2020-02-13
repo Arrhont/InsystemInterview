@@ -8,10 +8,10 @@ function Cart(props) {
   }
 
   return (
-    <div>
+    <div  className="CartList">
       {props.children}
       {cart.length > 0 &&
-        <div>
+        <div className="Total">
           Итого: {getTotalPrice(cart)} руб.
       </div>}
     </div>

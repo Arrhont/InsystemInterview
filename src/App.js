@@ -156,17 +156,18 @@ class App extends React.Component {
 
     return (
       <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
+        <header className="AppHeader">
+          <img src={logo} className="AppLogo" alt="logo" />
           Курс доллара:
           <input
+            className="ExchangeRate"
             type="number"
             value={usdToRubExchangeRate}
             onChange={event => this.exchangeRateChange(event.target.value)}
           ></input>
         </header>
 
-        <div className="Grocery-list">
+        <div className="GroceryList">
           {groupArray.map(([groupId, goodGroup]) => {
             const goods = this.getGoodsFromGroup(goodGroup);
             return (
@@ -191,7 +192,6 @@ class App extends React.Component {
         </div>
 
         <Cart
-          className="Cart-list"
           cart={cartArray}
           exchangeRate={usdToRubExchangeRate}
         >

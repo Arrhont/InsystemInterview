@@ -2,8 +2,8 @@ import React from 'react';
 
 function ProductGroup(props) {
     return (
-        <div>
-            {props.groupName} {props.id}
+        <div className="ProductGroup">
+            {props.groupName}
             {props.children}
         </div>
     )

@@ -14,14 +14,23 @@ export default function GoodRecord(props) {
   }
 
   return (
-    <div key={good.id} style={backgroundColorSet(priceState)}>
-      {good.name} Осталось: {good.quantity} Цена: {good.priceUsCents / 100}$
+    <div
+      key={good.id}
+      className="GoodRecord"
+      style={backgroundColorSet(priceState)}
+    >
+      <div>
+        <div className="GoodTextContainer GoodTextContainer_fontWeight_bold">{good.name}</div> 
+        <div className="GoodTextContainer">Осталось: {good.quantity}</div>
+        <div className="GoodTextContainer"> Цена: {good.priceUsCents / 100}$</div>
+      </div>
       <div>
         <button
+          className="AddButton"
           disabled={good.quantity <= 0}
           onClick={() => addToCart(good.id)}
         >
-          Добавить в корзину
+          Добавить<br/>в&nbsp;корзину
         </button>
       </div>
     </div>

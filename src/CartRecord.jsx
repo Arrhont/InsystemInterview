@@ -8,14 +8,14 @@ function CartRecord(props) {
       priceUsCents,
       quantity,
       inStock,
-      goodId,
+      goodId
     },
     exchangeRate,
     addToCart,
-    removeFromCart,
+    removeFromCart
   } = props;
 
-  function getValidValue (eventValue) {
+  function getValidValue(eventValue) {
     eventValue = Math.floor(eventValue);
 
     if (eventValue <= 0) {
@@ -30,27 +30,30 @@ function CartRecord(props) {
   }
 
   return (
-    <div>
-      {groupName}. {goodName}. Цена: {priceUsCents * exchangeRate / 100} руб.
-      <input
-        type="number"
-        value={quantity}
-        onChange={(event) => {
-          const validValue = getValidValue(event.target.value);
-          
-          if (validValue > quantity) {
-            addToCart(goodId, validValue - quantity);
-          } else {
-            removeFromCart(goodId, quantity - validValue);
-          }
-        }}
-      />  В наличии {inStock} шт.
+    <div className="GoodRecord GoodRecord_borderBottom">
+      <div>
+        {groupName}. {goodName}. Цена: {(priceUsCents * exchangeRate) / 100}{' '}
+        руб. В наличии {inStock} шт.
+      </div>
+      <div>
+        <input
+          className="QuantityInput"
+          type="number"
+          value={quantity}
+          onChange={event => {
+            const validValue = getValidValue(event.target.value);
 
-      <button
-        onClick={() => removeFromCart(goodId, quantity)}
-      >
-        Удалить
-      </button>
+            if (validValue > quantity) {
+              addToCart(goodId, validValue - quantity);
+            } else {
+              removeFromCart(goodId, quantity - validValue);
+            }
+          }}
+        />
+        <button onClick={() => removeFromCart(goodId, quantity)}>
+          Удалить
+        </button>
+      </div>
     </div>
   );
 }
