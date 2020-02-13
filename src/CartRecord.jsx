@@ -2,19 +2,21 @@ import React from 'react';
 
 function CartRecord(props) {
   const {
-    name,
-    goodId,
-    price,
+    cartRecord: {
+      groupName,
+      goodName,
+      priceUsCents,
+      quantity,
+      inStock,
+      goodId,
+    },
     exchangeRate,
-    quantity,
-    inStock,
-    groupName,
     addToCart,
-    removeFromCart
+    removeFromCart,
   } = props;
 
-  function defineNewValue (eventValue) {
-    eventValue = eventValue - eventValue % 1;
+  function getValidValue (eventValue) {
+    eventValue = Math.floor(eventValue);
 
     if (eventValue <= 0) {
       return 1;
@@ -29,26 +31,23 @@ function CartRecord(props) {
 
   return (
     <div>
-      {groupName}. {name}. Цена: {price * exchangeRate / 100} руб.
+      {groupName}. {goodName}. Цена: {priceUsCents * exchangeRate / 100} руб.
       <input
         type="number"
         value={quantity}
         onChange={(event) => {
-          const newValue = defineNewValue(event.target.value);
+          const validValue = getValidValue(event.target.value);
           
-          if (newValue > quantity) {
-            addToCart(goodId, newValue - quantity);
+          if (validValue > quantity) {
+            addToCart(goodId, validValue - quantity);
           } else {
-            removeFromCart(goodId, quantity - newValue);
+            removeFromCart(goodId, quantity - validValue);
           }
-
         }}
-      ></input>  В наличии {inStock} шт.
+      />  В наличии {inStock} шт.
 
       <button
-        onClick={(event) => {
-          removeFromCart(goodId, quantity);
-        }}
+        onClick={() => removeFromCart(goodId, quantity)}
       >
         Удалить
       </button>

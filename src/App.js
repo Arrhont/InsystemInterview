@@ -4,6 +4,7 @@ import './App.css';
 import ProductGroup from './ProductGroup';
 import Cart from './Cart';
 import GoodRecord from './GoodRecord';
+import CartRecord from './CartRecord';
 
 function groupDataGoods(data, names) {
   const goodsWithNames = data.Value.Goods.map(good => [
@@ -13,7 +14,7 @@ function groupDataGoods(data, names) {
       groupId: good.G.toString(),
       name: names[good.G].B[good.T].N,
       quantity: good.P,
-      priceUsd: good.C * 100,
+      priceUsCents: good.C * 100
     }
   ]);
 
@@ -52,10 +53,10 @@ class App extends React.Component {
   getPriceState = (goodsMap, prevGoodsMap) => {
     const priceState = new Map();
     for (let [goodId, good] of prevGoodsMap) {
-      if (good.priceUsd > goodsMap.get(goodId).priceUsd) {
+      if (good.priceUsCents > goodsMap.get(goodId).priceUsCents) {
         priceState.set(goodId, PRICE_STATE.DECREASED);
       }
-      if (good.priceUsd < goodsMap.get(goodId).priceUsd) {
+      if (good.priceUsCents < goodsMap.get(goodId).priceUsCents) {
         priceState.set(goodId, PRICE_STATE.INCREASED);
       }
     }
@@ -75,9 +76,8 @@ class App extends React.Component {
     Promise.all([datapromise, namesPromise]).then(([data, names]) => {
       const { goodsMap, groupMap } = groupDataGoods(data, names);
 
-      
       if (!isFirstLaunch) {
-        // goodsMap.get('1').priceUsd = 1000;
+        // goodsMap.get('1').priceUsCents = 1000;
         const priceState = this.getPriceState(goodsMap, this.state.goodsMap);
         this.setState({ priceState });
       }
@@ -132,11 +132,11 @@ class App extends React.Component {
 
     return Array.from(cart).map(([goodId, quantity]) => ({
       goodName: goodsMap.get(goodId).name,
-      priceUsd: goodsMap.get(goodId).priceUsd,
+      priceUsCents: goodsMap.get(goodId).priceUsCents,
       inStock: goodsMap.get(goodId).quantity,
       groupName: groupMap.get(goodsMap.get(goodId).groupId).name,
       goodId,
-      quantity,
+      quantity
     }));
   };
 
@@ -150,8 +150,9 @@ class App extends React.Component {
   };
 
   render() {
-    const groupArray = Array.from(this.state.groupMap);
-    console.log(this.state);
+    const { groupMap, usdToRubExchangeRate, priceState } = this.state;
+    const groupArray = Array.from(groupMap);
+    const cartArray = this.cartArrayFromMap();
 
     return (
       <div className="App">
@@ -160,7 +161,7 @@ class App extends React.Component {
           Курс доллара:
           <input
             type="number"
-            value={this.state.usdToRubExchangeRate}
+            value={usdToRubExchangeRate}
             onChange={event => this.exchangeRateChange(event.target.value)}
           ></input>
         </header>
@@ -179,7 +180,7 @@ class App extends React.Component {
                     <GoodRecord
                       key={good.id}
                       good={this.getGoodsPreview(good)}
-                      priceState={this.state.priceState.get(good.id)}
+                      priceState={priceState.get(good.id)}
                       addToCart={this.addToCart}
                     />
                   ))}
@@ -191,11 +192,19 @@ class App extends React.Component {
 
         <Cart
           className="Cart-list"
-          cart={this.cartArrayFromMap()}
-          exchangeRate={this.state.usdToRubExchangeRate}
-          addToCart={this.addToCart}
-          removeFromCart={this.removeFromCart}
-        />
+          cart={cartArray}
+          exchangeRate={usdToRubExchangeRate}
+        >
+          {cartArray.map(cartRecord => (
+            <CartRecord
+              key={cartRecord.goodId}
+              cartRecord={cartRecord}
+              exchangeRate={usdToRubExchangeRate}
+              addToCart={this.addToCart}
+              removeFromCart={this.removeFromCart}
+            />
+          ))}
+        </Cart>
       </div>
     );
   }
