@@ -1,27 +1,59 @@
 import React from 'react';
 
-class CartRecord extends React.Component {
+function CartRecord(props) {
+  const {
+    name,
+    goodId,
+    price,
+    exchangeRate,
+    quantity,
+    inStock,
+    groupName,
+    addToCart,
+    removeFromCart
+  } = props;
 
-  constructor(props) {
-    super(props);
-    this.state = { array: [] }
+  function defineNewValue (eventValue) {
+    eventValue = eventValue - eventValue % 1;
+
+    if (eventValue <= 0) {
+      return 1;
+    }
+
+    if (eventValue > inStock) {
+      return inStock;
+    }
+
+    return eventValue;
   }
-  render() {
-    return (
-      <div>
-        {this.props.name} {this.props.price * this.props.exchangeRate} {this.props.cartQuantity}
-        <button
-          onClick={(event) => {
-            this.props.removeFromCart(
-              this.props.goodId,
-              this.props.cartQuantity);
-          }}
-        >
-          Удалить
+
+  return (
+    <div>
+      {groupName}. {name}. Цена: {price * exchangeRate / 100} руб.
+      <input
+        type="number"
+        value={quantity}
+        onChange={(event) => {
+          const newValue = defineNewValue(event.target.value);
+          
+          if (newValue > quantity) {
+            addToCart(goodId, newValue - quantity);
+          } else {
+            removeFromCart(goodId, quantity - newValue);
+          }
+
+        }}
+      ></input>  В наличии {inStock} шт.
+
+      <button
+        onClick={(event) => {
+          removeFromCart(goodId, quantity);
+        }}
+      >
+        Удалить
       </button>
-      </div>
-    )
-  }
+    </div>
+  );
 }
 
 export default CartRecord;

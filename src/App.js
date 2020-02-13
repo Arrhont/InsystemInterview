@@ -13,7 +13,7 @@ function groupDataGoods(data, names) {
       groupId: good.G.toString(),
       name: names[good.G].B[good.T].N,
       quantity: good.P,
-      priceUsd: good.C
+      priceUsd: good.C * 100,
     }
   ]);
 
@@ -128,13 +128,15 @@ class App extends React.Component {
   };
 
   cartArrayFromMap = () => {
-    const { goodsMap, cart } = this.state;
+    const { goodsMap, groupMap, cart } = this.state;
 
     return Array.from(cart).map(([goodId, quantity]) => ({
       goodName: goodsMap.get(goodId).name,
       priceUsd: goodsMap.get(goodId).priceUsd,
+      inStock: goodsMap.get(goodId).quantity,
+      groupName: groupMap.get(goodsMap.get(goodId).groupId).name,
       goodId,
-      quantity
+      quantity,
     }));
   };
 
@@ -191,6 +193,7 @@ class App extends React.Component {
           className="Cart-list"
           cart={this.cartArrayFromMap()}
           exchangeRate={this.state.usdToRubExchangeRate}
+          addToCart={this.addToCart}
           removeFromCart={this.removeFromCart}
         />
       </div>

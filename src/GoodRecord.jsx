@@ -17,7 +17,7 @@ export default function GoodRecord(props) {
       key={good.id}
       style={ backgroundColorSet(priceState) }
     >
-      {good.name} Осталось: {good.quantity} Цена: {good.priceUsd}$
+      {good.name} Осталось: {good.quantity} Цена: {good.priceUsd / 100}$
       <div>
         {/* <input type="number" defaultValue="1" id={index}></input> */}
         <button

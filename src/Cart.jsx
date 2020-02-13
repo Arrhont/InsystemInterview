@@ -2,23 +2,27 @@ import React from 'react';
 import CartRecord from './CartRecord';
 
 function Cart(props) {
+  const { cart, exchangeRate} = props;
   return (
     <div>
-      {props.cart.map((cartRecord, index) => (
+      {cart.map((cartRecord, index) => (
         <CartRecord
-          key={cartRecord.goodName}
+          key={cartRecord.goodId}
           name={cartRecord.goodName}
           price={cartRecord.priceUsd}
           goodId={cartRecord.goodId}
-          cartQuantity={cartRecord.quantity}
+          quantity={cartRecord.quantity}
+          inStock={cartRecord.inStock}
+          groupName={cartRecord.groupName}
           exchangeRate={props.exchangeRate}
+          addToCart={props.addToCart}
           removeFromCart={props.removeFromCart}
         />
       ))
       }
-      {props.cart.length > 0 &&
+      {cart.length > 0 &&
         <div>
-          Итого: {props.cart.reduce((acc, item) => acc + item.priceUsd * item.quantity * props.exchangeRate, 0)} руб.
+          Итого: {cart.reduce((acc, item) => acc + item.priceUsd / 100 * item.quantity * exchangeRate, 0)} руб.
       </div>}
     </div>
 
